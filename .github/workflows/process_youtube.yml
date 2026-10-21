@@ -19,9 +19,6 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Wait for 1 hour (Delay)
-        run: sleep 3600
-
       - name: Install dependencies
         run: |
           pip install youtube-transcript-api google-genai
