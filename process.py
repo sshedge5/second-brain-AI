@@ -10,6 +10,9 @@ api_key = os.environ.get("GEMINI_API_KEY")
 if not video_url:
     raise ValueError("YOUTUBE_URL is missing")
 
+if not api_key:
+    raise ValueError("GEMINI_API_KEY secret is missing in GitHub repository settings.")
+
 # Extract Video ID
 match = re.search(r"(?:v=|\/|be\/)([0-9A-Za-z_-]{11})", video_url)
 if not match:
@@ -18,11 +21,18 @@ video_id = match.group(1)
 
 # Fetch Transcript
 try:
-    transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+    yt = YouTubeTranscriptApi()
+    transcript_list = yt.fetch(video_id)
     transcript_text = " ".join([item['text'] for item in transcript_list])
 except Exception as e:
-    print(f"Error fetching transcript: {e}")
-    transcript_text = "Transcript directly available nahi ahe."
+    print(f"Error fetching transcript via fetch(): {e}")
+    try:
+        # Fallback for different library versions
+        transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+        transcript_text = " ".join([item['text'] for item in transcript_list])
+    except Exception as ex:
+        print(f"Fallback failed: {ex}")
+        transcript_text = "Transcript directly available nahi ahe."
 
 # Call Gemini API
 client = genai.Client(api_key=api_key)
